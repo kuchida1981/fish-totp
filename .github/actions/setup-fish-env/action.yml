@@ -1,0 +1,21 @@
+name: Setup fish environment
+description: Install fish, jq, oathtool, python3, curl, and fisher for fish-totp CI/release jobs
+
+runs:
+  using: composite
+  steps:
+    - name: Add fish PPA
+      shell: bash
+      run: |
+        sudo apt-add-repository -y ppa:fish-shell/release-3
+        sudo apt-get update
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        sudo apt-get install -y fish jq oathtool python3 curl
+
+    - name: Install fisher
+      shell: bash
+      run: |
+        fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
