@@ -73,14 +73,18 @@ function _test_without_command --argument-names cmd_name
     end
     set -l real_dirs
     for p in $real_paths
-        set -a real_dirs (dirname "$p")
+        set -a real_dirs (realpath (dirname "$p"))
     end
 
     set -l stub_root (mktemp -d)
     set -l new_path
     for entry in $PATH
-        if contains -- "$entry" $real_dirs
-            set -l stub_dir "$stub_root"(string replace -a '/' '_' "$entry")
+        set -l resolved_entry (realpath "$entry" 2>/dev/null)
+        if test -z "$resolved_entry"
+            set resolved_entry "$entry"
+        end
+        if contains -- "$resolved_entry" $real_dirs
+            set -l stub_dir "$stub_root"(string replace -a '/' '_' "$resolved_entry")
             mkdir -p "$stub_dir"
             for bin in $entry/*
                 set -l bname (basename "$bin")
