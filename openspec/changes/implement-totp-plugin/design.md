@@ -31,7 +31,15 @@ complete -c totp -f -a '(ls $TOTP_DIR 2>/dev/null)'
 代替案: `totp.fish` 側で引数解析ロジックを持ち、補完もそこに委ねる方式は、将来 `totp add`/`totp remove` 等のサブコマンドが増えた際には一元管理しやすいが、現時点ではオーバーエンジニアリングになるため見送る。
 
 ### 3. `TOTP_DIR` 環境変数を初期実装から導入する
-`conf.d/fish-totp.fish` で `set -q TOTP_DIR; or set -g TOTP_DIR ~/.config/totp` としてデフォルト値を設定する。`idea.md` では Future Ideas 扱いだったが、`functions/` と `completions/` の両方が同じパスを参照する必要があるため、変数化しておかないと後から2箇所を書き換えるコストが発生する。ハードコードから変数への変更は本質的に無料ではないため、最初から変数化する。
+`conf.d/fish-totp.fish` で以下のようにデフォルト値を設定する。
+
+```fish
+if not set -q TOTP_DIR
+    set -g TOTP_DIR ~/.config/totp
+end
+```
+
+（`set -q TOTP_DIR; or set -g TOTP_DIR ~/.config/totp` という `or` 形式も等価に見えるが、fish 3.7.1 では直前の失敗コマンドの影響で `set -g` 自体の exit status が 1 になり、プラグイン読み込みのたびに `$status` が汚れる問題があったため `if` 文形式を採用する。動作確認〈6.5〉で発見。）`idea.md` では Future Ideas 扱いだったが、`functions/` と `completions/` の両方が同じパスを参照する必要があるため、変数化しておかないと後から2箇所を書き換えるコストが発生する。ハードコードから変数への変更は本質的に無料ではないため、最初から変数化する。
 
 ### 4. `oathtool` の欠如チェックは実行時のみ、プラグイン読み込み時には行わない
 `conf.d/fish-totp.fish` では `oathtool` の存在確認をしない。`functions/totp.fish` の実行冒頭で `command -q oathtool` をチェックし、無ければ fish 標準の `command not found: oathtool` の代わりに、インストール方法を示す独自メッセージを表示して終了する。
