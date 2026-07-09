@@ -17,6 +17,7 @@ COPY functions/ functions/
 COPY completions/ completions/
 COPY conf.d/ conf.d/
 COPY README.md README.md
+COPY test/ test/
 
 # fish-totp プラグインをローカルからインストール
 RUN fisher install .

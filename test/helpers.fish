@@ -92,12 +92,8 @@ function _test_without_command --argument-names cmd_name
         if contains -- "$resolved_entry" $real_dirs
             set -l stub_dir "$stub_root"(string replace -a '/' '_' "$resolved_entry")
             mkdir -p "$stub_dir"
-            for bin in $entry/*
-                set -l bname (basename "$bin")
-                if test "$bname" != "$cmd_name"; and test -x "$bin"; and not test -d "$bin"
-                    ln -s "$bin" "$stub_dir/$bname" 2>/dev/null
-                end
-            end
+            ln -s $entry/* "$stub_dir/" 2>/dev/null
+            rm -f "$stub_dir/$cmd_name"
             set -a new_path "$stub_dir"
         else
             set -a new_path "$entry"
