@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add fish PPA
+        run: |
+          sudo apt-add-repository -y ppa:fish-shell/release-3
+          sudo apt-get update
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y fish jq oathtool python3 curl
+
+      - name: Install fisher
+        run: |
+          fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
+
+      - name: Install fish-totp via fisher
+        run: |
+          fish -c "fisher install ."
+
+      - name: Run tests
+        run: |
+          fish test/run.fish
