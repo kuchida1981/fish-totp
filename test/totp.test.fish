@@ -34,3 +34,59 @@ function test_totp_fails_without_oathtool
     assert_match 'oathtool is required' (cat $err_file) "should report missing oathtool in stderr"
     rm -f $err_file
 end
+
+function test_totp_dispatcher_add
+    totp add --name "dispatcher-add-site" "JBSWY3DPEHPK3PXP"
+    set -l s $status
+    assert_success $s "totp add should succeed"
+
+    # ファイルの存在確認
+    test -f "$TOTP_DIR/dispatcher-add-site"
+    assert_success $status "dispatcher-add-site file should be created"
+
+    # JSON の内容検証
+    set -l secret (jq -r .secret "$TOTP_DIR/dispatcher-add-site")
+    assert_eq "JBSWY3DPEHPK3PXP" "$secret" "secret should be JBSWY3DPEHPK3PXP"
+end
+
+function test_totp_dispatcher_ls
+    printf '{"secret":"AAAA"}\n' >"$TOTP_DIR/github"
+    printf '{"secret":"BBBB"}\n' >"$TOTP_DIR/aws"
+
+    set -l output (totp ls | sort)
+    assert_eq "aws github" "$output" "totp ls should list all site files under TOTP_DIR"
+end
+
+function test_totp_dispatcher_remove
+    # 既存の site ファイルを作成
+    printf '{"secret":"JBSWY3DPEHPK3PXP"}\n' >"$TOTP_DIR/github"
+    test -f "$TOTP_DIR/github"
+    set -l exists $status
+    assert_status 0 $exists "github file should exist initially"
+
+    # 削除を実行
+    totp remove github
+    set -l s $status
+    assert_success $s "totp remove github should exit successfully"
+
+    # ファイルが削除されていることを確認
+    test ! -f "$TOTP_DIR/github"
+    assert_success $status "github file should be deleted"
+end
+
+function test_totp_dispatcher_show
+    # 既存の site ファイルを作成
+    printf '{"secret":"JBSWY3DPEHPK3PXP","issuer":"GitHub","account":"test@example.com"}\n' >"$TOTP_DIR/github"
+    test -f "$TOTP_DIR/github"
+    set -l exists $status
+    assert_status 0 $exists "github file should exist initially"
+
+    # totp show を実行し出力をキャプチャ
+    set -l output (totp show github)
+    set -l s $status
+    assert_success $s "totp show github should exit successfully"
+
+    # 出力に secret が含まれていることを確認
+    assert_match '"secret": "JBSWY3DPEHPK3PXP"' "$output" "output should contain the formatted secret"
+    assert_match '"issuer": "GitHub"' "$output" "output should contain the formatted issuer"
+end
