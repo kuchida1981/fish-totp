@@ -14,6 +14,8 @@
 
 - fish shell
 - oathtool
+- jq
+- python3 (URIから追加する場合のみ)
 
 ## Installation
 
@@ -32,11 +34,52 @@ $ totp github
 
 ```console
 $ totp <TAB>
+add
+remove
+ls
+show
 aws
 github
 google
 slack
 ```
+
+### 管理コマンドの使用例
+
+- **サイトの追加（URI から）** (issuer が自動的にサイト名になります)
+  ```console
+  $ totp add "otpauth://totp/GitHub:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=GitHub"
+  ```
+
+- **サイトの追加（シークレット単体）** (`--name` オプションが必須です)
+  ```console
+  $ totp add JBSWY3DPEHPK3PXP --name slack
+  ```
+
+- **サイト名一覧の表示**
+  ```console
+  $ totp ls
+  github
+  slack
+  ```
+
+- **登録されているサイトの詳細表示** (シークレットを含む全メタデータを表示します)
+  ```console
+  $ totp show github
+  {
+    "secret": "JBSWY3DPEHPK3PXP",
+    "issuer": "GitHub",
+    "account": "user@example.com",
+    "algorithm": "SHA1",
+    "digits": 6,
+    "period": 30
+  }
+  ```
+
+- **サイトの削除** (確認なしで即座に削除されます)
+  ```console
+  $ totp remove slack
+  ```
 
 ## Secret Storage
 
@@ -50,12 +93,19 @@ slack
 └── slack
 ```
 
-各ファイルには Base32 エンコードされた秘密鍵のみを記述する。
+各ファイルには `secret`・`issuer`・`account`・`algorithm`・`digits`・`period` を持つ JSON 形式で保存する。
 
 例:
 
-```
-JBSWY3DPEHPK3PXP
+```json
+{
+  "secret": "JBSWY3DPEHPK3PXP",
+  "issuer": "GitHub",
+  "account": "byebyeearthjpn@gmail.com",
+  "algorithm": "SHA1",
+  "digits": 6,
+  "period": 30
+}
 ```
 
 ## Command Behavior
@@ -67,7 +117,7 @@ totp <site>
 内部では次のコマンドを実行する。
 
 ```sh
-oathtool --totp --base32 "$(cat ~/.config/totp/<site>)"
+oathtool --totp --base32 "$(jq -r .secret ~/.config/totp/<site>)"
 ```
 
 ## Completion
@@ -99,14 +149,9 @@ unknown site: unknown
 
 ## Future Ideas
 
-- `totp ls`
-- `totp add`
-- `totp remove`
-- `totp show`（サイト一覧）
 - `totp copy`（クリップボードへコピー）
 - `totp qr`（QRコードから登録）
 - `totp import`（otpauth:// URI のインポート）
-- `TOTP_DIR` 環境変数による保存先変更
 - `pass`、`gopass`、`1Password CLI` などとの連携
 - `fzf` によるインタラクティブ選択
 - 残り有効時間の表示
