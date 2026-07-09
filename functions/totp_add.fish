@@ -43,14 +43,22 @@ try:
     account = label_account
     algorithm = qs.get("algorithm", ["SHA1"])[0]
     digits_str = qs.get("digits", [None])[0]
-    try:
-        digits = int(digits_str) if digits_str else 6
-    except ValueError:
+    if digits_str:
+        try:
+            digits = int(digits_str)
+        except ValueError:
+            sys.stderr.write("error: --digits must be a number\n")
+            sys.exit(1)
+    else:
         digits = 6
     period_str = qs.get("period", [None])[0]
-    try:
-        period = int(period_str) if period_str else 30
-    except ValueError:
+    if period_str:
+        try:
+            period = int(period_str)
+        except ValueError:
+            sys.stderr.write("error: --period must be a number\n")
+            sys.exit(1)
+    else:
         period = 30
     print(json.dumps({"secret": secret, "issuer": issuer, "account": account, "algorithm": algorithm, "digits": digits, "period": period}))
 except Exception as e:
@@ -85,12 +93,17 @@ except Exception as e:
         set -l parsed_issuer (echo "$base_json" | jq -r .issuer)
         if test "$parsed_issuer" != "null"; and test -n "$parsed_issuer"
             set name "$parsed_issuer"
+        else
+            set -l parsed_account (echo "$base_json" | jq -r .account)
+            if test "$parsed_account" != "null"; and test -n "$parsed_account"
+                set name "$parsed_account"
+            end
         end
     end
 
     # 6. サイト名の妥当性検証
-    if test -z "$name"; or string match -q '*/*' -- "$name"
-        echo "error: invalid site name '$name'. Please specify a valid site name with --name." >&2
+    if test -z "$name"; or string match -q '*/*' -- "$name"; or contains -- "$name" add remove ls show
+        echo "error: invalid site name '$name'. Please specify a valid site name with --name (cannot be empty, contain '/', or be a reserved subcommand)." >&2
         return 1
     end
 
@@ -141,10 +154,22 @@ except Exception as e:
         return 1
     end
 
+    # 最終的な final_json の secret が空/null でないことを検証
+    if not echo "$final_json" | jq -e '.secret != null and .secret != ""' >/dev/null
+        echo "error: secret is required" >&2
+        return 1
+    end
+
     # 9. ディレクトリ作成および書き込み
     mkdir -p "$TOTP_DIR"
     if test $status -ne 0
         echo "error: failed to create directory $TOTP_DIR" >&2
+        return 1
+    end
+
+    # 書き込み直前の TOCTOU 対策再チェック
+    if test -f "$TOTP_DIR/$name"
+        echo "error: site '$name' already exists" >&2
         return 1
     end
 
