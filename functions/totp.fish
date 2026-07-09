@@ -14,23 +14,23 @@ function totp
         return 1
     end
 
-    # 3. jq の存在確認
-    _totp_require_jq; or return 1
-
-    # 4. $argv[1] を <site> として使う
+    # 3. $argv[1] を <site> として使う
     set -l site $argv[1]
 
-    # 5. $TOTP_DIR/<site> の存在確認
+    # 4. $TOTP_DIR/<site> の存在確認
     if not test -f "$TOTP_DIR/$site"
         echo "unknown site: $site" >&2
         return 1
     end
 
-    # 6. ファイルの読み取り可能性確認
+    # 5. ファイルの読み取り可能性確認
     if not test -r "$TOTP_DIR/$site"
         echo "error: cannot read secret file for $site" >&2
         return 1
     end
+
+    # 6. jq の存在確認
+    _totp_require_jq; or return 1
 
     # 7. jq で JSON から secret を取得
     set -l secret (jq -r .secret "$TOTP_DIR/$site")
