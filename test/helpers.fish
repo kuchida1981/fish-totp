@@ -4,6 +4,7 @@
 
 set -g __test_pass_count 0
 set -g __test_fail_count 0
+set -g __test_skip_count 0
 set -g __current_test_name ""
 
 function _test_report_pass
@@ -13,6 +14,11 @@ end
 function _test_report_fail --argument-names detail
     set -g __test_fail_count (math $__test_fail_count + 1)
     echo "FAIL [$__current_test_name] $detail" >&2
+end
+
+function _test_report_skip --argument-names reason
+    set -g __test_skip_count (math $__test_skip_count + 1)
+    echo "SKIP [$__current_test_name] $reason" >&2
 end
 
 function assert_eq --argument-names expected actual message

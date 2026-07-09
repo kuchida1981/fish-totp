@@ -1,7 +1,6 @@
 function test_fisher_install
-    # fisher がインストールされていない場合はテストをスキップする
     if not command -q fisher
-        echo "SKIP: fisher not installed, skipping install verification test" >&2
+        _test_report_skip "fisher not installed, skipping install verification test"
         return 0
     end
 
@@ -17,6 +16,11 @@ function test_fisher_install
     fisher install .
     set -l install_status $status
     popd
+
+    # fisher install の成否に関わらず、後続のテストが壊れないよう関数を必ず復元する
+    for fn in "$repo_root"/functions/*.fish
+        source "$fn"
+    end
 
     assert_success $install_status "fisher install . should succeed"
 

@@ -34,9 +34,9 @@ for fn in $test_functions
     _test_teardown_totp_dir
 end
 
-set -l total (math $__test_pass_count + $__test_fail_count)
+set -l total (math $__test_pass_count + $__test_fail_count + $__test_skip_count)
 echo ""
-echo "Tests: $total run, $__test_pass_count passed, $__test_fail_count failed"
+echo "Tests: $total run, $__test_pass_count passed, $__test_fail_count failed, $__test_skip_count skipped"
 
 if test $__test_fail_count -gt 0
     exit 1
