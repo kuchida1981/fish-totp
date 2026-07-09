@@ -197,6 +197,20 @@ fish-totp 0.1.0
 - ワークフローは `main` ブランチ限定で実行され、テスト実行、`TOTP_VERSION` 更新・コミット、タグ作成、GitHub Release 作成（`--generate-notes`）を自動で行う。
 - 実行には該当リポジトリへの書き込み権限（`contents: write` を許可する権限を持つユーザー）が必要である。
 
+#### GitHub の Web UI から
+
+1. リポジトリの `Actions` タブを開く
+2. 左側のワークフロー一覧から `Release` を選択
+3. 右上の `Run workflow` ボタンをクリック
+4. ドロップダウンが開き、`Use workflow from`（ブランチ選択、`main` のまま）と `version` のテキスト入力欄が表示される
+5. `version` 欄に `0.2.0` のように入力し、`Run workflow` ボタンを押す
+
+#### gh CLI から
+
+```sh
+gh workflow run release.yml -f version=0.2.0
+```
+
 ## Non-goals
 
 - TOTP アルゴリズムの実装
