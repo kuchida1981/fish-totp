@@ -102,7 +102,7 @@ except Exception as e:
     end
 
     # 6. サイト名の妥当性検証
-    if test -z "$name"; or string match -q '*/*' -- "$name"; or contains -- "$name" add remove ls show
+    if test -z "$name"; or string match -q '*/*' -- "$name"; or contains -- "$name" add remove ls show version
         echo "error: invalid site name '$name'. Please specify a valid site name with --name (cannot be empty, contain '/', or be a reserved subcommand)." >&2
         return 1
     end
