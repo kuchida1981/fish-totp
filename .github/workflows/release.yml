@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "リリースするバージョン (例: 0.2.0、v プレフィックスなし)"
+        required: true
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate version format
+        run: |
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version must be in X.Y.Z format without a 'v' prefix, got: $VERSION"
+            exit 1
+          fi
+
+      - name: Setup fish environment
+        uses: ./.github/actions/setup-fish-env
+
+      - name: Run tests
+        run: |
+          fish test/run.fish
+
+      - name: Bump TOTP_VERSION and commit
+        run: |
+          sed -i "s/set -g TOTP_VERSION \".*\"/set -g TOTP_VERSION \"$VERSION\"/" conf.d/fish-totp.fish
+
+          if ! grep -qF "set -g TOTP_VERSION \"$VERSION\"" conf.d/fish-totp.fish; then
+            echo "::error::failed to update TOTP_VERSION to $VERSION in conf.d/fish-totp.fish"
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- conf.d/fish-totp.fish; then
+            echo "TOTP_VERSION is already $VERSION; skipping commit"
+          else
+            git add conf.d/fish-totp.fish
+            git commit -m "chore: release $VERSION"
+            git push origin HEAD:main || {
+              echo "push rejected, rebasing onto latest main and retrying once"
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            }
+          fi
+
+      - name: Create and push tag
+        run: |
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$VERSION" --generate-notes

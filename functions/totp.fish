@@ -2,7 +2,7 @@ function totp
     # 1. サブコマンドディスパッチ (add, remove, ls, show)
     set -l cmd $argv[1]
     switch "$cmd"
-        case add remove ls show
+        case add remove ls show version
             totp_$cmd $argv[2..]
             return $status
     end
