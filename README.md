@@ -175,6 +175,28 @@ fish test/run.fish
 
 ※ `fisher install .` のインストール検証テストは `fisher` が導入済みの場合のみ実行され、無い場合は自動的にスキップされます。
 
+## Versioning
+
+`totp version` コマンドでバージョンを表示できる。
+
+```console
+$ totp version
+fish-totp 0.1.0
+```
+
+### バージョニング規約
+
+- バージョンは Semantic Versioning (semver, `X.Y.Z`) 形式で管理する。
+- Git タグにはプレフィックス（`v` など）を付けない。タグ名は `TOTP_VERSION` の値と完全に一致させる（例: `0.2.0`。`v0.2.0` ではない）。
+- `TOTP_VERSION` 変数は `conf.d/fish-totp.fish` に定義されており、プラグインロード時に設定される。
+
+### リリース手順
+
+- リリースは GitHub Actions の `workflow_dispatch`（`.github/workflows/release.yml`）を手動実行して行う。
+- 実行時に `version` 入力（例: `0.2.0`）を指定する。
+- ワークフローは `main` ブランチ限定で実行され、テスト実行、`TOTP_VERSION` 更新・コミット、タグ作成、GitHub Release 作成（`--generate-notes`）を自動で行う。
+- 実行には該当リポジトリへの書き込み権限（`contents: write` を許可する権限を持つユーザー）が必要である。
+
 ## Non-goals
 
 - TOTP アルゴリズムの実装
