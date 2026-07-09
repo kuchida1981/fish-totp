@@ -1,5 +1,7 @@
 # fish-totp
 
+[![CI](https://github.com/kuchida1981/fish-totp/actions/workflows/ci.yml/badge.svg)](https://github.com/kuchida1981/fish-totp/actions/workflows/ci.yml)
+
 `oathtool` を利用して TOTP (Time-based One-Time Password) を生成するための Fish Shell Extension。
 
 ## Features
@@ -155,6 +157,23 @@ unknown site: unknown
 - `pass`、`gopass`、`1Password CLI` などとの連携
 - `fzf` によるインタラクティブ選択
 - 残り有効時間の表示
+
+## Testing
+
+以下のコマンドでテストを実行できます。
+
+```sh
+fish test/run.fish
+```
+
+### 必要な依存ツール
+
+- `fish`
+- `jq`
+- `oathtool`
+- `python3` （`totp add` の otpauth URI テストで使用）
+
+※ `fisher install .` のインストール検証テストは `fisher` が導入済みの場合のみ実行され、無い場合は自動的にスキップされます。
 
 ## Non-goals
 
