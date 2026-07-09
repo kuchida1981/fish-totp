@@ -10,9 +10,21 @@ function totp_show
 
     set -l site $argv[1]
 
+    # パストラバーサル防止
+    if string match -q '*/*' -- "$site"
+        echo "unknown site: $site" >&2
+        return 1
+    end
+
     # 3. 存在確認
     if not test -f "$TOTP_DIR/$site"
         echo "unknown site: $site" >&2
+        return 1
+    end
+
+    # 読み取り可能性確認
+    if not test -r "$TOTP_DIR/$site"
+        echo "error: cannot read secret file for $site" >&2
         return 1
     end
 
