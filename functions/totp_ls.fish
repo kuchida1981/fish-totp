@@ -1,9 +1,6 @@
 function totp_ls
     # 1. jq の存在確認
-    if not command -q jq
-        echo "jq is required. Please install it to use this plugin." >&2
-        return 1
-    end
+    _totp_require_jq; or return 1
 
     # 2. $TOTP_DIR 内のファイル（サイト名）一覧を表示
     if test -d "$TOTP_DIR"

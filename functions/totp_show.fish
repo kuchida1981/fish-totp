@@ -1,9 +1,6 @@
 function totp_show
     # 1. jq の存在確認
-    if not command -q jq
-        echo "jq is required. Please install it to use this plugin." >&2
-        return 1
-    end
+    _totp_require_jq; or return 1
 
     # 2. 引数チェック
     if test (count $argv) -ne 1

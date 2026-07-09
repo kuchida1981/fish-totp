@@ -14,11 +14,8 @@ function totp
         return 1
     end
 
-    # 3. command -q jq で存在確認
-    if not command -q jq
-        echo "jq is required. Please install it to use this plugin." >&2
-        return 1
-    end
+    # 3. jq の存在確認
+    _totp_require_jq; or return 1
 
     # 4. $argv[1] を <site> として使う
     set -l site $argv[1]
